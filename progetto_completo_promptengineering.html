@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tecniche di Prompt Engineering</title>
+<style>
+  :root {
+    --bg: #f5f6fa;
+    --card-bg: #ffffff;
+    --text: #1f2430;
+    --text-soft: #565f75;
+    --accent: #4a6cf7;
+    --accent-soft: #e8edff;
+    --border: #e2e5ee;
+    --prompt-bg: #fff4e6;
+    --prompt-border: #f0b86e;
+    --answer-bg: #eef7ee;
+    --answer-border: #8fc98f;
+    --orange: #FBD4B4;
+    --red: #FF0000;
+    --blue: #548DD4;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161f;
+      --card-bg: #1d2030;
+      --text: #eef0f7;
+      --text-soft: #a4abc4;
+      --accent: #8ba4ff;
+      --accent-soft: #26304f;
+      --border: #2b3049;
+      --prompt-bg: #3a2e1a;
+      --prompt-border: #b8863d;
+      --answer-bg: #1e3320;
+      --answer-border: #4f8f56;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161f;
+    --card-bg: #1d2030;
+    --text: #eef0f7;
+    --text-soft: #a4abc4;
+    --accent: #8ba4ff;
+    --accent-soft: #26304f;
+    --border: #2b3049;
+    --prompt-bg: #3a2e1a;
+    --prompt-border: #b8863d;
+    --answer-bg: #1e3320;
+    --answer-border: #4f8f56;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, -apple-system, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px 60px; }
+
+  /* ==== Documento Word ==== */
+  .doc-name {
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin: 0 0 18px;
+  }
+  .doc-title {
+    text-align: center;
+    font-weight: 700;
+    text-decoration: underline;
+    font-size: 1.15rem;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    margin: 0 0 24px;
+  }
+  .box {
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 16px 0;
+  }
+  .box-orange {
+    background: var(--orange);
+    color: #3a2a12;
+  }
+  .box-orange .box-header {
+    text-align: center;
+    font-weight: 700;
+    margin: 0 0 10px;
+  }
+  .box-red {
+    background: var(--red);
+    color: #fff;
+    text-align: center;
+    font-weight: 700;
+  }
+  .box-blue-header {
+    background: var(--blue);
+    color: #fff;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin: 24px 0 0;
+  }
+  .box-blue-body {
+    background: var(--blue);
+    color: #fff;
+    padding: 6px 16px 12px 34px;
+    border-radius: 0 0 6px 6px;
+    margin: 0 0 10px;
+  }
+  .box-blue-body ul { margin: 8px 0; padding-left: 18px; }
+  .box-blue-body li { margin: 8px 0; }
+  .num-point { margin: 18px 0 8px; }
+  .num-point b.n { margin-right: 4px; }
+  .example-line { margin: 10px 0; font-style: italic; }
+  table.compare {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 0.95rem;
+  }
+  table.compare th {
+    background: var(--blue);
+    color: #fff;
+    text-align: left;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+  }
+  table.compare td {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .divider {
+    margin: 56px 0 40px;
+    border: none;
+    border-top: 2px dashed var(--border);
+  }
+
+  /* ==== Sezione Esempi pratici ==== */
+  header.top { text-align: center; margin-bottom: 36px; }
+  header.top h1 { font-size: 1.8rem; margin: 0 0 8px; color: var(--accent); }
+  header.top p { color: var(--text-soft); margin: 0; font-size: 0.95rem; }
+  .category { margin: 44px 0 20px; }
+  .category h2 {
+    font-size: 1.15rem;
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 6px 16px;
+    border-radius: 999px;
+    margin: 0;
+  }
+  .technique {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin: 18px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .technique h3 { margin: 0 0 4px; font-size: 1.05rem; }
+  .technique .sub { color: var(--text-soft); font-size: 0.85rem; margin: 0 0 14px; }
+  .bubble { border-radius: 10px; padding: 12px 14px; margin: 10px 0; font-size: 0.93rem; white-space: pre-wrap; }
+  .bubble .label {
+    display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; padding: 2px 8px; border-radius: 6px; margin-bottom: 6px; color: #fff;
+  }
+  .prompt { background: var(--prompt-bg); border: 1px solid var(--prompt-border); }
+  .prompt .label { background: var(--prompt-border); }
+  .answer { background: var(--answer-bg); border: 1px solid var(--answer-border); }
+  .answer .label { background: var(--answer-border); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= DOCUMENTO WORD ================= -->
+  <p class="doc-name">TAFURI CLAUDIO</p>
+  <p class="doc-title">Tecniche di Prompt Engineering: Sperimentazione e Applicazione Pratica</p>
+
+  <div class="box box-orange">
+    <p class="box-header">Sintesi del progetto</p>
+    <p>Il progetto ha avuto l'obiettivo di esplorare e applicare in modo pratico le principali tecniche di prompt engineering, utilizzando Gemini 3.6 Flash come modello di supporto. Il lavoro ha incluso lo studio delle tecniche fondamentali basate sul contesto (zero-shot e n-shot), delle tecniche di ragionamento complesso (Chain of Thought e relative varianti, Directional Stimulus, Generated Knowledge, Multimodal CoT), delle tecniche emergenti di generazione controllata e raffinamento dei prompt, oltre all'applicazione di due framework strutturati, RACE e COAST, con relativo confronto. Il progetto dimostra competenze di prompt engineering, conoscenza approfondita delle metodologie di interazione con i modelli linguistici e utilizzo consapevole e critico degli strumenti di intelligenza artificiale.</p>
+  </div>
+
+  <div class="box box-red">
+    <p>È estremamente importante ricordare che, per quanto questi strumenti possano apparire impeccabili, commettono spesso degli errori: è quindi compito dell'operatore effettuare una revisione finale al termine del lavoro.</p>
+  </div>
+
+  <p class="num-point"><b class="n">1</b>È stato scelto il modello di LLM: nello specifico Gemini, nella versione 3.6 Flash, un modello con capacità superiori rispetto ai requisiti minimi del task. La scelta è ricaduta su questo modello per garantire maggiore affidabilità e qualità nelle risposte generate durante la sperimentazione delle diverse tecniche di prompting.</p>
+
+  <p class="num-point"><b class="n">2</b>Sono state applicate le tecniche fondamentali basate sul contesto, ovvero lo Zero-Shot Prompting, che consiste nel porre una richiesta diretta al modello senza fornire alcun esempio preventivo, e l'N-Shot Prompting, che prevede l'inserimento nel prompt di un piccolo insieme di esempi etichettati prima della richiesta finale, aiutando il modello ad adattarsi a contesti specifici e a generalizzare meglio.</p>
+
+  <p class="example-line"><b>Esempio (Zero-Shot):</b> "Classifica la seguente notizia: Ieri il governo ha approvato un nuovo disegno di legge di riforma fiscale."</p>
+  <p class="example-line"><b>Esempio (N-Shot):</b> inserimento di un piccolo dataset di notizie etichettate (es. "La partita di calcio è finita in parità — Sport") prima della richiesta di classificazione vera e propria.</p>
+
+  <p class="num-point"><b class="n">3</b>È stata condotta una sperimentazione approfondita delle tecniche di ragionamento complesso. Il Chain of Thought (CoT) Prompting, nelle sue varianti Least-to-Most, Active e Self-Consistency, incoraggia il modello a mostrare le fasi intermedie di ragionamento prima di giungere alla risposta finale. Il Directional Stimulus Prompting fornisce al modello segnali espliciti su contesto, stile e scopo per orientare l'output. Il Generated Knowledge Prompting sollecita il modello a produrre e sfruttare conoscenze specifiche archiviate durante l'addestramento, mentre il Multimodal CoT Prompting combina diversi tipi di input, come testo e immagini, all'interno dello stesso prompt. Sono state inoltre esplorate tecniche emergenti quali la generazione controllata (ad esempio tramite Gumbel-Softmax) e il Counterfactual Prompting, oltre a metodologie di raffinamento e ottimizzazione dei prompt nei dataset, come l'Iterative Refinement, la Data Augmentation e l'Active Learning.</p>
+
+  <p class="example-line"><b>Esempio (Directional Stimulus):</b> "Ho un problema con il mio ordine. Agisci come rappresentante del servizio clienti e simula una conversazione per risolvere il problema dell'utente."</p>
+  <p class="example-line"><b>Esempio (Counterfactual Prompting):</b> confronto tra un prompt standard ("Chi è il candidato migliore fra John e Sarah?") e un prompt controfattuale con i sessi invertiti, per individuare eventuali pregiudizi del modello.</p>
+
+  <p class="num-point"><b class="n">4</b>Sono stati infine applicati due framework di prompting strutturati, RACE e COAST, ciascuno composto da quattro-cinque elementi fondamentali da inserire nel prompt per ottenere risposte più mirate e professionali.</p>
+
+  <p class="example-line"><b>RACE:</b> Role (Ruolo), Action (Azione), Context (Contesto), Expectation/Execute (Aspettativa/Esecuzione) — semplice, veloce, focalizzato sull'assegnazione di un ruolo specifico; indicato per generazione di contenuti, copywriting e compiti creativi o consulenziali rapidi.</p>
+  <p class="example-line"><b>COAST:</b> Context (Contesto), Objective (Obiettivo), Actions (Azioni), Scenario (Vincoli), Task/Type (Tipo di output) — dettagliato, orientato ai processi e alla scomposizione dell'obiettivo; indicato per pianificazione aziendale, risoluzione di problemi complessi e creazione di workflow strutturati.</p>
+
+  <table class="compare">
+    <tr><th>Framework</th><th>Punti di forza</th><th>Quando usarlo</th></tr>
+    <tr><td><b>RACE</b></td><td>Semplice, veloce, focalizzato sull'assegnazione di un ruolo specifico.</td><td>Generazione di contenuti, copywriting, compiti creativi o consulenziali rapidi.</td></tr>
+    <tr><td><b>COAST</b></td><td>Dettagliato, orientato ai processi e alla scomposizione dell'obiettivo.</td><td>Pianificazione aziendale, risoluzione di problemi complessi, creazione di workflow e report strutturati.</td></tr>
+  </table>
+
+  <p class="box-blue-header">Risultati ottenuti</p>
+  <div class="box-blue-body">
+    <ul>
+      <li>Sperimentazione pratica di dieci tecniche di prompt engineering, dalle più elementari (zero-shot, n-shot) a quelle di ragionamento complesso (Chain of Thought e sue varianti, Directional Stimulus, Generated Knowledge, Multimodal CoT).</li>
+      <li>Applicazione di tecniche emergenti di generazione controllata e raffinamento dei prompt (Iterative Refinement, Data Augmentation, Active Learning).</li>
+      <li>Utilizzo dei framework strutturati RACE e COAST per la costruzione di prompt professionali e mirati.</li>
+      <li>Realizzazione di una tabella di confronto tra i framework RACE e COAST, con indicazione dei rispettivi punti di forza e contesti d'uso ottimali.</li>
+    </ul>
+  </div>
+
+  <p class="box-blue-header">Competenze acquisite</p>
+  <div class="box-blue-body">
+    <ul>
+      <li>Prompt engineering avanzato e conoscenza delle principali tecniche di interazione con i modelli linguistici (zero-shot, n-shot, Chain of Thought e varianti, Directional Stimulus, Generated Knowledge, Multimodal CoT).</li>
+      <li>Capacità di strutturare richieste complesse tramite framework professionali (RACE, COAST) in funzione dell'obiettivo e del contesto d'uso.</li>
+      <li>Conoscenza di metodologie di raffinamento e ottimizzazione dei prompt e dei dataset (Iterative Refinement, Data Augmentation, Active Learning).</li>
+      <li>Analisi critica e comparativa di framework e tecniche, con individuazione dei relativi punti di forza e ambiti di applicazione.</li>
+      <li>Utilizzo critico e consapevole degli strumenti di intelligenza artificiale generativa, con attenzione alla verifica finale dei risultati prodotti.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ================= SEZIONE ESEMPI PRATICI ================= -->
+  <header class="top">
+    <h1>Esempi pratici</h1>
+    <p>Per ogni tecnica: il prompt utilizzato e un esempio di risposta dell'AI</p>
+  </header>
+
+  <section class="category">
+    <h2>Tecniche fondamentali basate sul contesto</h2>
+
+    <div class="technique">
+      <h3>1. Zero-Shot Prompting</h3>
+      <p class="sub">Richiesta diretta, senza esempi preventivi.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Classifica il seguente commento: "Il nuovo smartphone ha una batteria che dura tutto il giorno, sono davvero soddisfatto."</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Categoria: Recensione positiva. Il commento esprime soddisfazione per un aspetto specifico del prodotto (l'autonomia della batteria), quindi si tratta di un feedback favorevole di tipo tecnologico.</div>
+    </div>
+
+    <div class="technique">
+      <h3>2. N-Shot Prompting</h3>
+      <p class="sub">Alcuni esempi etichettati prima della richiesta finale.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+"Ieri ha piovuto per tutto il giorno" — Meteo
+"La torta al cioccolato era squisita" — Cibo
+Classifica la seguente frase: "Il concerto di ieri sera è stato indimenticabile."</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Categoria: Spettacoli. Seguendo lo schema degli esempi forniti, la frase descrive un'esperienza legata a un evento musicale, quindi rientra nella categoria "Spettacoli".</div>
+    </div>
+  </section>
+
+  <section class="category">
+    <h2>Tecniche di ragionamento complesso</h2>
+
+    <div class="technique">
+      <h3>3a. Chain of Thought — Least-to-Most</h3>
+      <p class="sub">Si parte da un livello di informazione minimo per arrivare a quello completo.</p>
+      <div class="bubble prompt"><span class="label">Prompt (in sequenza)</span>
+1) La mia stampante non funziona, puoi aiutarmi?
+2) Il modello è una HP LaserJet 400 e mostra una spia rossa lampeggiante.
+3) Ho già provato a riavviarla ma il problema persiste.</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Grazie per i dettagli. La spia rossa lampeggiante su quel modello indica solitamente un inceppamento della carta o un problema al toner. Ti consiglio di aprire lo sportello posteriore e controllare la presenza di fogli incastrati; se il problema persiste, potrebbe essere necessario sostituire la cartuccia.</div>
+    </div>
+
+    <div class="technique">
+      <h3>3b. Chain of Thought — Active Prompting</h3>
+      <p class="sub">Il modello chiede attivamente informazioni passo dopo passo.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Voglio imparare lo spagnolo partendo da zero.</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Ottima scelta! Per creare un percorso su misura ho bisogno di qualche informazione: hai già delle basi, anche minime, oppure parti completamente da zero? E quanto tempo puoi dedicare allo studio ogni settimana?</div>
+    </div>
+
+    <div class="technique">
+      <h3>3c. Chain of Thought — Self-Consistency</h3>
+      <p class="sub">Verifica che ogni passaggio del ragionamento sia coerente con i precedenti.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Prima hai detto che il volo è stato cancellato per maltempo. Il rimborso comprende anche le spese dell'hotel prenotato per quella notte?</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Sì, in coerenza con quanto detto: trattandosi di una cancellazione per cause di forza maggiore come il maltempo, la polizza di viaggio copre anche le spese accessorie documentate, incluso il pernottamento imprevisto.</div>
+    </div>
+
+    <div class="technique">
+      <h3>4. Directional Stimulus Prompting</h3>
+      <p class="sub">Segnali espliciti su contesto, stile e scopo.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Sto cercando un regalo di compleanno per mia madre. Agisci come personal shopper esperto e suggeriscimi tre idee originali.</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Volentieri! Ecco tre proposte: 1) un cofanetto esperienza per un weekend termale, 2) un corso di ceramica o pittura da fare insieme, 3) una pianta rara in vaso decorativo abbinata a un piccolo album fotografico personalizzato.</div>
+    </div>
+
+    <div class="technique">
+      <h3>5. Generated Knowledge Prompting</h3>
+      <p class="sub">Si sollecita conoscenza specifica, non domande generiche.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Spiegami nel dettaglio come avviene la fotosintesi clorofilliana.</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+La fotosintesi avviene nei cloroplasti delle cellule vegetali: la clorofilla cattura l'energia luminosa e la utilizza per trasformare anidride carbonica e acqua in glucosio, rilasciando ossigeno come sottoprodotto. Il processo si divide in fase luminosa, che produce energia chimica, e fase oscura (ciclo di Calvin), che utilizza quell'energia per sintetizzare zuccheri.</div>
+    </div>
+
+    <div class="technique">
+      <h3>6. Multimodal CoT Prompting</h3>
+      <p class="sub">Combina testo e altri input (immagini, audio, video).</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+[immagine di un piatto di pasta] Che piatto è raffigurato nell'immagine e quali ingredienti riconosci?</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Si tratta di spaghetti alla carbonara: riconosco la pasta lunga, il guanciale croccante a cubetti, la crema a base di uovo e pecorino e una generosa spolverata di pepe nero in superficie.</div>
+    </div>
+  </section>
+
+  <section class="category">
+    <h2>Tecniche emergenti</h2>
+
+    <div class="technique">
+      <h3>7a. Generazione Controllata (es. Gumbel-Softmax)</h3>
+      <p class="sub">Si agisce sul bias per modificare stile o sentiment dell'output.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Scrivi una recensione per un ristorante che mi ha deluso, ma sposta il sentiment verso un tono più neutro e costruttivo.</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+L'esperienza nel complesso è stata migliorabile: alcuni piatti erano ben presentati, anche se i tempi di attesa sono risultati piuttosto lunghi. Con qualche accorgimento sul servizio, il locale ha comunque del potenziale da esprimere.</div>
+    </div>
+
+    <div class="technique">
+      <h3>7b. Counterfactual Prompting</h3>
+      <p class="sub">Scenari ipotetici per individuare bias del modello.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Standard: "Chi è il candidato migliore fra Marco e Giulia per il ruolo di manager?"
+Controfattuale: "E se le età dei due candidati fossero invertite, chi sarebbe il candidato migliore fra Marco e Giulia?"</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+In entrambi i casi la valutazione dovrebbe basarsi solo su competenze, esperienza e risultati ottenuti, non sull'età o sul genere. Se le due risposte del modello risultassero diverse a parità di curriculum, emergerebbe un bias legato all'età da correggere.</div>
+    </div>
+  </section>
+
+  <section class="category">
+    <h2>Raffinamento e ottimizzazione dei prompt</h2>
+
+    <div class="technique">
+      <h3>8a. Iterative Refinement</h3>
+      <p class="sub">Perfezionamento progressivo del prompt in base al feedback.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Rendi questo messaggio più diretto e professionale, mantenendo un tono cortese: "Ciao, volevo solo dirti che secondo me il progetto ha alcuni problemi."</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Ciao, ho analizzato il progetto e ho individuato alcune criticità che vorrei condividere con te al più presto, così da poterle affrontare insieme prima della prossima scadenza.</div>
+    </div>
+
+    <div class="technique">
+      <h3>8b. Data Augmentation</h3>
+      <p class="sub">Generazione di varianti con sinonimi o strutture alternative.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Riformula questa frase usando sinonimi: "Il servizio clienti è stato molto disponibile."</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Variante 1: "Il servizio clienti si è dimostrato molto cordiale."
+Variante 2: "L'assistenza clienti è stata estremamente collaborativa."
+Variante 3: "Il personale dedicato all'assistenza è stato molto premuroso."</div>
+    </div>
+
+    <div class="technique">
+      <h3>8c. Active Learning (campionamento dell'incertezza)</h3>
+      <p class="sub">Selezione dei dati più ambigui da far etichettare.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Analizza questa frase ambigua e indica se il sentiment è positivo o negativo: "Il film mi ha lasciato con sentimenti contrastanti."</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Sentiment: Ambiguo, confidenza bassa (circa 50%). La frase non esprime una polarità netta: la segnalo come candidata prioritaria per una revisione manuale, secondo la logica dell'active learning.</div>
+    </div>
+  </section>
+
+  <section class="category">
+    <h2>Framework strutturati</h2>
+
+    <div class="technique">
+      <h3>9. RACE</h3>
+      <p class="sub">Role, Action, Context, Expectations.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Role: sei un esperto di comunicazione aziendale.
+Action: aiutami a scrivere un post per annunciare l'apertura di un nuovo punto vendita.
+Context: il pubblico è composto da clienti abituali del quartiere, il tono deve essere caloroso e informale.
+Expectations: fornisci un testo di massimo 100 parole, pronto per essere pubblicato su Instagram, con un invito all'azione finale.</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+"Buone notizie per il quartiere! 🎉 Da sabato apriamo il nostro nuovo punto vendita, più grande e più vicino a voi. Vi aspettiamo con un piccolo omaggio per i primi 50 clienti e tante novità da scoprire insieme. Passate a trovarci, vi aspettiamo a braccia aperte! 📍 Segnate la data in agenda."</div>
+    </div>
+
+    <div class="technique">
+      <h3>10. COAST</h3>
+      <p class="sub">Context, Objective, Actions, Scenario, Task/Type.</p>
+      <div class="bubble prompt"><span class="label">Prompt</span>
+Context: l'azienda deve formare 20 dipendenti su un nuovo software gestionale entro un mese.
+Objective: garantire che tutti i dipendenti siano autonomi nell'uso del software entro la scadenza.
+Actions: elenca le fasi di formazione, dai materiali alle sessioni pratiche.
+Scenario: le sessioni possono durare al massimo 2 ore e si svolgono da remoto.
+Task/Type: presenta il risultato come una tabella con colonne: Settimana, Attività, Durata.</div>
+      <div class="bubble answer"><span class="label">Risposta dell'AI</span>
+Ecco la tabella richiesta — Settimana 1: Invio manuale introduttivo e video tutorial (autonoma); Settimana 2: Sessione pratica guidata sulle funzioni base (2h); Settimana 3: Sessione pratica su casi d'uso avanzati (2h); Settimana 4: Test finale e sessione di recupero per chi ha dubbi residui (1h30).</div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
